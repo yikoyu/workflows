@@ -17,7 +17,8 @@ jobs:
   autofix:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Setup JS
