@@ -1,0 +1,33 @@
+name: autofix.ci
+
+on:
+  push:
+    branches: [main]
+
+  pull_request:
+
+  workflow_call:
+    inputs:
+      command:
+        required: false
+        type: string
+        default: pnpm lint --fix
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Setup JS
+        uses: yikoyu/workflows/setup-js@main
+
+      - name: Fix
+        run: ${{ inputs.command }}
+        if: ${{ inputs.command != '' }}
+
+      - name: Commit
+        uses: autofix-ci/action@v1
+        with:
+          commit-message: 'ci(autofix): :lipstick: auto format'

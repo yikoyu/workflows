@@ -1,0 +1,122 @@
+name: Setup JavaScript
+description: Setup JavaScript environment
+
+inputs:
+  persist-credentials:
+    description: Whether to configure the token or SSH key with the local git config
+    required: false
+    default: 'false'
+
+  fetch-all:
+    description: Whether to fetch all history for all branches and tags.
+    required: false
+    default: 'false'
+
+  node-version:
+    description: 'Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.'
+    required: false
+    default: 'lts/*'
+
+  node-version-file:
+    description: 'File containing the version Spec of the version to use.  Examples: package.json, .nvmrc, .node-version, .tool-versions.'
+    required: false
+
+  package-manager:
+    description: 'Package manager to use. Examples: npm, yarn, pnpm.'
+    default: pnpm
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        persist-credentials: ${{ inputs.persist-credentials }}
+        fetch-depth: "${{ inputs.fetch-all == 'true' && '0' || '1' }}"
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      if: ${{ inputs.package-manager == 'pnpm' }}
+
+    - name: Setup node
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        node-version-file: ${{ inputs.node-version-file }}
+        cache: ${{ inputs.package-manager }}
+        registry-url: 'https://registry.npmjs.org'
+
+    - name: Show package manager versions
+      shell: bash
+      run: |
+        echo "Current node version: $(node -v)"
+        echo "Current  npm version: $(npm -v)"
+        if command -v yarn &> /dev/null; then
+          echo "Current yarn version: $(yarn -v)"
+        else
+          echo "Current yarn version: not installed"
+        fi
+        if command -v pnpm &> /dev/null; then
+          echo "Current pnpm version: $(pnpm -v)"
+        else
+          echo "Current pnpm version: not installed"
+        fi
+
+    - name: Get package manager cache directory
+      shell: bash
+      run: |
+        STORE_PATH=""
+
+        if [ "${{ inputs.package-manager }}" = "pnpm" ]; then
+          # PNPM
+          STORE_PATH=$(pnpm store path --silent)
+        elif [ "${{ inputs.package-manager }}" = "yarn" ]; then
+          # YARN
+          YARN_VERSION=$(yarn -v | cut -d '.' -f 1)
+          echo "Detected Yarn major version: $YARN_VERSION"
+
+          if [ "$YARN_VERSION" -ge 2 ]; then
+            # YARN 2+
+            STORE_PATH=$(yarn config get cacheFolder)
+            echo "Using Yarn 2+ cache directory logic"
+          else
+            # YARN 1.x
+            STORE_PATH=$(yarn cache dir)
+            echo "Using Yarn 1.x cache directory logic"
+          fi
+        elif [ "${{ inputs.package-manager }}" = "npm" ]; then
+          # NPM
+          STORE_PATH=$(npm config get cache)
+        else
+          echo "Error: Unsupported package manager '${{ inputs.package-manager }}'"
+          exit 1
+        fi
+
+        echo "STORE_PATH=$STORE_PATH" >> $GITHUB_ENV
+        echo "✅ Using ${{ inputs.package-manager }} cache directory: $STORE_PATH"
+
+    - uses: actions/cache@v5
+      name: Setup ${{ inputs.package-manager }} cache
+      env:
+        LOCK_FILE: >
+          ${{
+            inputs.package-manager == 'pnpm' && '**/pnpm-lock.yaml' ||
+            inputs.package-manager == 'yarn' && '**/yarn.lock' ||
+            inputs.package-manager == 'npm' && '**/package-lock.json'
+          }}
+      with:
+        path: ${{ env.STORE_PATH }}
+        key: ${{ runner.os }}-${{ inputs.package-manager }}-store-${{ hashFiles(env.LOCK_FILE) }}
+        restore-keys: |
+          ${{ runner.os }}-${{ inputs.package-manager }}-store-
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        echo "📦 Installing @antfu/ni globally..."
+        npm install -g @antfu/ni
+
+        echo "🔧 Installing dependencies..."
+        ni
+
+        echo "✅ All dependencies installed successfully"
