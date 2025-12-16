@@ -27,11 +27,11 @@ inputs:
   node-version:
     description: 'Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.'
     required: false
-    default: 'lts/*'
 
   node-version-file:
     description: 'File containing the version Spec of the version to use.  Examples: package.json, .nvmrc, .node-version, .tool-versions.'
     required: false
+    default: package.json
 
   package-manager:
     description: 'Package manager to use. Examples: npm, yarn, pnpm.'
@@ -56,7 +56,7 @@ runs:
     - name: Setup node
       uses: actions/setup-node@v6
       with:
-        node-version: ${{ inputs.node-version-file && '' || inputs.node-version }}
+        node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version-file }}
         cache: ${{ inputs.package-manager }}
         registry-url: 'https://registry.npmjs.org'

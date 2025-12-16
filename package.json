@@ -9,6 +9,9 @@
     "email": "2282373181@qq.com"
   },
   "license": "MIT",
+  "engines": {
+    "node": "v22"
+  },
   "scripts": {
     "lint": "eslint .",
     "commit": "czg",
