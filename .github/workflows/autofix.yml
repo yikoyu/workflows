@@ -30,4 +30,4 @@ jobs:
       - name: Commit
         uses: autofix-ci/action@v1
         with:
-          commit-message: 'ci(autofix): :lipstick: auto format'
+          commit-message: 'ci(autofix): :lipstick: auto format [skip ci]'

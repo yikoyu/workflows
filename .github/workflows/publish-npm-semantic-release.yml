@@ -1,0 +1,39 @@
+name: Publish NPM Semantic Release
+
+on:
+  workflow_call:
+    inputs:
+      build-command:
+        required: false
+        type: string
+        default: pnpm build:lib
+
+jobs:
+  publish-to-npm:
+    runs-on: [ubuntu-latest]
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+      id-token: write # to enable use of OIDC for npm provenance
+
+    steps:
+      - name: Setup JS
+        uses: yikoyu/workflows/setup-js@main
+        with:
+          fetch-all: 'true'
+          persist-credentials: false
+
+      - name: Update npm
+        run: npm install npm@11.6.1 -g
+
+      - name: Build
+        run: ${{ inputs.build-command }}
+
+      - name: Release
+        env:
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+          NPM_CONFIG_PROVENANCE: true
+          SKIP_SIMPLE_GIT_HOOKS: 1
+          HUSKY: 0
+        run: pnpm semantic-release

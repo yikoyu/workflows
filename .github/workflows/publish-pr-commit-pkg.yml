@@ -1,0 +1,24 @@
+name: Publish PR Commit Pkg
+
+on:
+  workflow_call:
+    inputs:
+      build-command:
+        required: false
+        type: string
+        default: pnpm build:lib
+
+jobs:
+  build:
+    runs-on: [ubuntu-latest]
+    permissions:
+      contents: read
+
+    steps:
+      - uses: yikoyu/workflows/setup-js@main
+
+      - name: Build
+        run: ${{ inputs.build-command }}
+
+      - name: Publish PR
+        run: pnpm dlx pkg-pr-new publish --pnpm --packageManager=pnpm,npm,yarn

@@ -2,6 +2,18 @@ name: Setup JavaScript
 description: Setup JavaScript environment
 
 inputs:
+  repository:
+    description: 'Repository name with owner. For example, actions/checkout'
+    required: false
+    default: ${{ github.repository }}
+
+  ref:
+    description: >
+      The branch, tag or SHA to checkout. When checking out the repository that
+      triggered a workflow, this defaults to the reference or SHA for that
+      event.  Otherwise, uses the default branch.
+    required: false
+
   persist-credentials:
     description: Whether to configure the token or SSH key with the local git config
     required: false
@@ -23,6 +35,7 @@ inputs:
 
   package-manager:
     description: 'Package manager to use. Examples: npm, yarn, pnpm.'
+    required: false
     default: pnpm
 
 runs:
@@ -31,6 +44,8 @@ runs:
     - name: Checkout
       uses: actions/checkout@v6
       with:
+        repository: ${{ inputs.repository }}
+        ref: ${{ inputs.ref }}
         persist-credentials: ${{ inputs.persist-credentials }}
         fetch-depth: "${{ inputs.fetch-all == 'true' && '0' || '1' }}"
 
@@ -41,7 +56,7 @@ runs:
     - name: Setup node
       uses: actions/setup-node@v6
       with:
-        node-version: ${{ inputs.node-version }}
+        node-version: ${{ inputs.node-version-file && '' || inputs.node-version }}
         node-version-file: ${{ inputs.node-version-file }}
         cache: ${{ inputs.package-manager }}
         registry-url: 'https://registry.npmjs.org'
