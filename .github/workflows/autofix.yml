@@ -21,8 +21,17 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Setup JS
+      - name: Setup JS (push event)
+        if: github.event_name == 'push'
         uses: yikoyu/workflows/setup-js@main
+
+      - name: Setup JS (pull_request_target event)
+        if: github.event_name == 'pull_request_target'
+        uses: yikoyu/workflows/setup-js@main
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          persist-credentials: false
 
       - name: Fix
         run: ${{ inputs.command }}
