@@ -7,6 +7,9 @@ on:
         required: false
         type: string
         default: pnpm build:lib
+      publish-paths:
+        required: false
+        type: string
 
 jobs:
   build:
@@ -21,4 +24,4 @@ jobs:
         run: ${{ inputs.build-command }}
 
       - name: Publish PR
-        run: pnpm dlx pkg-pr-new publish --pnpm --packageManager=pnpm,npm,yarn
+        run: pnpm dlx pkg-pr-new publish --pnpm --packageManager=pnpm,npm,yarn ${{ inputs.publish-paths }}
