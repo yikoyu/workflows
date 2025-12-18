@@ -7,6 +7,10 @@ on:
         required: false
         type: string
         default: pnpm build:lib
+    secrets:
+      github-token:
+        required: false
+        description: GitHub token for semantic-release authentication
 
 jobs:
   publish-to-npm:
@@ -32,6 +36,7 @@ jobs:
 
       - name: Release
         env:
+          GITHUB_TOKEN: ${{ secrets.github-token || secrets.GITHUB_TOKEN }}
           NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
           NPM_CONFIG_PROVENANCE: true
           SKIP_SIMPLE_GIT_HOOKS: 1
