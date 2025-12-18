@@ -2,6 +2,10 @@ name: Commitlint Validate
 
 on:
   workflow_call:
+    inputs:
+      command:
+        required: false
+        type: string
 
 jobs:
   commitlint:
@@ -22,6 +26,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           persist-credentials: false
+
+      - name: Run Command
+        run: ${{ inputs.command }}
+        if: ${{ inputs.command != '' }}
 
       - name: Validate current commit (last commit) with commitlint
         if: github.event_name == 'push'
