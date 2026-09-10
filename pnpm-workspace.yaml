@@ -1,5 +1,13 @@
-shellEmulator: true
+minimumReleaseAgeExcludePrune: true
 trustPolicy: no-downgrade
 
-onlyBuiltDependencies:
-  - simple-git-hooks
+publicHoistPattern:
+  - '*types*'
+  - '*eslint*'
+  - '*prettier*'
+  - '@commitlint/*'
+
+shellEmulator: true
+
+allowBuilds:
+  simple-git-hooks: true
